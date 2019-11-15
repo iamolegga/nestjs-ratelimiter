@@ -44,68 +44,83 @@ export class RateLimiterGuard implements CanActivate {
     }
 
     const response = context.switchToHttp().getResponse();
+
     // in case of `fastify` get native response via `res` property
     // https://www.fastify.io/docs/latest/Reply/#introduction
     // in case of `express` response inherit native response
     const nativeResponse: ServerResponse = response.res || response;
 
     for (const param of paramsList) {
-      const getId = param.getId || this.defaultParams.getId;
-      if (!getId) {
-        continue;
-      }
-
-      let id: string;
-
-      try {
-        id = await getId(context);
-      } catch (error) {
-        throw new InternalServerErrorException(
-          'Can not get id for rate limiter',
-          error,
-        );
-      }
-
-      const limiterParams: LimiterOption = {
-        id,
-        // limiter accept instance of 'redis' and 'ioredis':
-        // https://github.com/tj/node-ratelimiter/blob/master/test/index.js#L9
-        // this is a bug in typings:
-        // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/ratelimiter/index.d.ts#L7
-        db: this.db as any,
-        max: param.max || this.defaultParams.max,
-        duration: param.duration || this.defaultParams.duration,
-      };
-
-      let limit: LimiterInfo;
-      try {
-        limit = await getLimit(limiterParams);
-      } catch (error) {
-        // Redis error while creating limiter
-        throw new InternalServerErrorException(
-          'Can not create rate limiter',
-          error,
-        );
-      }
-
-      nativeResponse.setHeader('X-RateLimit-Limit', limit.total);
-      nativeResponse.setHeader('X-RateLimit-Remaining', limit.remaining - 1);
-      nativeResponse.setHeader('X-RateLimit-Reset', limit.reset);
-
-      if (limit.remaining < 1) {
-        // tslint:disable-next-line: no-bitwise
-        const after = (limit.reset - Date.now() / 1000) | 0;
-        nativeResponse.setHeader('Retry-After', after);
-
-        const createErrorBody =
-          param.createErrorBody ||
-          this.defaultParams.createErrorBody ||
-          defaultErrorBodyCreator;
-        throw new TooManyRequestsException(createErrorBody(limit));
-      }
+      await this.checkSingleParam(param, context, nativeResponse);
     }
 
     return true;
+  }
+
+  private async checkSingleParam(
+    param: RateLimiterParams,
+    context: ExecutionContext,
+    response: ServerResponse,
+  ) {
+    const getId = param.getId || this.defaultParams.getId;
+    if (!getId) {
+      return;
+    }
+
+    let id: string;
+
+    try {
+      id = await getId(context);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Can not get id for rate limiter',
+        error,
+      );
+    }
+
+    const limiterParams: LimiterOption = {
+      id,
+      // limiter accept instance of 'redis' and 'ioredis':
+      // https://github.com/tj/node-ratelimiter/blob/master/test/index.js#L9
+      // this is a bug in typings:
+      // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/ratelimiter/index.d.ts#L7
+      db: this.db as any,
+      max: param.max || this.defaultParams.max,
+      duration: param.duration || this.defaultParams.duration,
+    };
+
+    let limit: LimiterInfo;
+    try {
+      limit = await getLimit(limiterParams);
+    } catch (error) {
+      // Redis error while creating limiter
+      throw new InternalServerErrorException(
+        'Can not create rate limiter',
+        error,
+      );
+    }
+
+    setLimitHeaders(response, limit);
+
+    if (limit.remaining < 1) {
+      this.onLimitExceed(limit, response, param);
+    }
+  }
+
+  private onLimitExceed(
+    limit: LimiterInfo,
+    response: ServerResponse,
+    param: RateLimiterParams,
+  ) {
+    // tslint:disable-next-line: no-bitwise
+    const after = (limit.reset - Date.now() / 1000) | 0;
+    response.setHeader('Retry-After', after);
+
+    const createErrorBody =
+      param.createErrorBody ||
+      this.defaultParams.createErrorBody ||
+      defaultErrorBodyCreator;
+    throw new TooManyRequestsException(createErrorBody(limit));
   }
 }
 
@@ -113,4 +128,10 @@ function isTurnedOff(
   params: RateLimiterParams[] | [false] | undefined,
 ): params is [false] {
   return !!params && params[0] === false;
+}
+
+function setLimitHeaders(response: ServerResponse, limit: LimiterInfo) {
+  response.setHeader('X-RateLimit-Limit', limit.total);
+  response.setHeader('X-RateLimit-Remaining', limit.remaining - 1);
+  response.setHeader('X-RateLimit-Reset', limit.reset);
 }
