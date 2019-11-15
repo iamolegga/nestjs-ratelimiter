@@ -1,0 +1,27 @@
+language: node_js
+services:
+  - redis-server
+cache:
+  directories:
+    - node_modules
+notifications:
+  email: false
+node_js:
+  - '12'
+deploy:
+  skip_cleanup: true
+  on:
+    repo: iamolegga/nestjs-ratelimiter
+    branch: master
+  provider: npm
+  email: iamolegga@gmail.com
+  api_key:
+    secure: tdoAHC6gB6xhx6mHkQKQ6UB6wNPENqOTm6Ofs9ogEdENnrXhZex0eVxMxiCKceEt/CPzWWvleQ40bCufzxRw7m/7rWeYG84/MK77Bfr3er75ucTS6aiA+TkcndybTeRj3n3l4wS7mBtoQ20o8TfX6ntNzdbbEqLGgSzOdJd6oqwI5LAvAx4goPUaQ4vm+ALZkvOsDDWBMRpWeh8NlIDpa5TKKfVfgIr8UpVJPEvpLrFjsLS0BtqFZcSbzHQBaDNMk4DM01Lq4TSfnBhN25ieOKSwkWXo6JZ+qLwqdCwowQvzr9Z7b7Wq8zBO8D8S0zfNlUoSFpBteSs7X+nIJ32cn4SpucRqx4JNC9pSpd0rKnYP6UdfH95SE7XNK5F+yN4iFCUZq3K6AHpKzp8pFAQgh2ogm2K9OmDnZnk3mG7Xu/NWRS7g8+IlDlynkri6gz+0F29GKerh/RAu3kAJqYaP1+wKHqCGqmnbhGkHXZdowbv3UBoB2+R84d1fuqp3r9jnQ70lDqx4+2iic4RZYiakZKfPi+Vi7FGfyQAvVEAS9xzOgXP29Sew6HvQMlRxKXzNwjB97LW9TTnMb7a9h8vtVKi8LtLoDnTuUXrqS3nPeOJjw74iwdebF720U9yYOUDeTKvfjs2k/6hepWrJleKwqoWaFILk7uvTSgxixEi1lQM=
+script:
+  - npm run build
+  - npm run test
+after_deploy:
+  - npm run report
+branches:
+  except:
+    - "/^v\\d+\\.\\d+\\.\\d+$/"
