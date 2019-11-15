@@ -1,5 +1,5 @@
 {
-  "name": "nestjs-ratelimiter",
+  "name": "nest-ratelimiter",
   "version": "0.1.0",
   "description": "Distributed consistent flexible NestJS rate limiter based on Redis",
   "main": "dist/index.js",

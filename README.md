@@ -1,29 +1,29 @@
-# nestjs-ratelimiter
+# nest-ratelimiter
 
 Distributed consistent flexible NestJS rate limiter based on Redis.
 
 ## Install
 
 ```sh
-npm i nestjs-ratelimiter nestjs-redis
+npm i nest-ratelimiter nestjs-redis
 ```
 
 or
 
 ```sh
-yarn add nestjs-ratelimiter nestjs-redis
+yarn add nest-ratelimiter nestjs-redis
 ```
 
 **If you want to use default response when riching limit (text: "Rate limit exceeded, retry in some time") also install `ms`.**
 
 ```sh
-npm i nestjs-ratelimiter nestjs-redis ms
+npm i nest-ratelimiter nestjs-redis ms
 ```
 
 or
 
 ```sh
-yarn add nestjs-ratelimiter nestjs-redis ms
+yarn add nest-ratelimiter nestjs-redis ms
 ```
 
 ## Usage
@@ -35,7 +35,7 @@ Also you can override parameters of entire controller by parameters for certain 
 And finally you can set several params for multi checking.
 
 ```ts
-import { RateLimiter, LimiterInfo } from 'nestjs-ratelimiter';
+import { RateLimiter, LimiterInfo } from 'nest-ratelimiter';
 
 // Let's define several functions that returns the identifier
 // to limit against.
@@ -120,12 +120,12 @@ class TestController {
 ```
 
 After controllers let's move to module registration.
-As `nestjs-ratelimiter` is using `redis` as store for it's own data you have to install and register `nestjs-redis` module.
+As `nest-ratelimiter` is using `redis` as store for it's own data you have to install and register `nestjs-redis` module.
 See more about `nestjs-redis` module configuration [here](https://www.npmjs.com/package/nestjs-redis).
 
 ```ts
 import { RedisModule } from 'nestjs-redis';
-import { RateLimiterModule, LimiterInfo } from 'nestjs-ratelimiter';
+import { RateLimiterModule, LimiterInfo } from 'nest-ratelimiter';
 
 @Module({
   imports: [
@@ -176,7 +176,7 @@ class TestModule {}
 And the last one thing that you need to do is setup guard globally:
 
 ```ts
-import { RATELIMITER_GUARD_TOKEN } from 'nestjs-ratelimiter';
+import { RATELIMITER_GUARD_TOKEN } from 'nest-ratelimiter';
 
 const app = await NestFactory.create(AppModule);
 app.useGlobalGuards(app.get(RATELIMITER_GUARD_TOKEN));
