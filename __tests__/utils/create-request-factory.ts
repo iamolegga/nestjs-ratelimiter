@@ -21,11 +21,13 @@ export function CreateRequestFactory(
 ) {
   return async function createRequest(
     rmModule: DynamicModule,
-    params?: RateLimiterParams,
+    params?: RateLimiterParams | false,
+    requestsCount = 1,
   ) {
-    const handlerDecorator = params
-      ? applyDecorators(Get(), RateLimiter(params))
-      : Get();
+    const handlerDecorator =
+      params !== undefined
+        ? applyDecorators(Get(), RateLimiter(params as any))
+        : Get();
 
     @Controller('/')
     class TestController {
@@ -51,9 +53,13 @@ export function CreateRequestFactory(
 
     await app.init();
     await fastifyExtraWait(Platform, app);
-    const response = await request(server).get('/');
+    let response: request.Response;
+
+    for (let i = 0; i < requestsCount; i++) {
+      response = await request(server).get('/');
+    }
     await app.close();
 
-    return response;
+    return response!;
   };
 }
