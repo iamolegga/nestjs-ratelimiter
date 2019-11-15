@@ -206,3 +206,7 @@ import { RATELIMITER_GUARD_TOKEN } from 'nest-ratelimiter';
 const app = await NestFactory.create(AppModule);
 app.useGlobalGuards(app.get(RATELIMITER_GUARD_TOKEN));
 ```
+
+## Comparison with others
+
+This `nest-ratelimiter` is using TJ's [ratelimiter](https://www.npmjs.com/package/ratelimiter) package underhood, so it allows you to create really flexible strategy for limiting not only per request path but per **headers** or **body** values and so on (see examples above). **It stores data only in `redis`**. If you need another store you can look at [nestjs-rate-limiter](https://www.npmjs.com/package/nestjs-rate-limiter), but it allows to use strategies based only on request path. Also there is example in [official docs](https://docs.nestjs.com/techniques/security#rate-limiting) with setting up [express-rate-limit](https://www.npmjs.com/package/express-rate-limit) middleware.
