@@ -1,77 +1,60 @@
-import {
-  applyDecorators,
-  Controller,
-  DynamicModule,
-  Get,
-  Module,
-  Type,
-} from '@nestjs/common';
-import { AbstractHttpAdapter, NestFactory } from '@nestjs/core';
-import { RedisModule } from 'nestjs-redis';
-import * as request from 'supertest';
-import {
-  RateLimiter,
-  RATELIMITER_GUARD_TOKEN,
-  RateLimiterModule,
-  RateLimiterParams,
-} from '../src';
-import { fastifyExtraWait } from './utils/fastify-extra-wait';
+import { Injectable, Module } from '@nestjs/common';
+import { RateLimiterModule } from '../src';
+import { CreateRequestFactory } from './utils/create-request-factory';
 import { platforms } from './utils/platforms';
+
+let iterator = 0;
 
 for (const platform of platforms) {
   describe(platform.name, () => {
     const createRequest = CreateRequestFactory(platform);
 
-    it('should return headers', async () => {
+    it('set default `getId` in forRoot method works', async () => {
       const response = await createRequest(
-        RateLimiterModule.forRoot({ getId: () => 'should return headers' }),
+        RateLimiterModule.forRoot({ getId: () => (iterator++).toString() }),
       );
 
       expect(response.get('X-RateLimit-Limit')).toBeTruthy();
       expect(response.get('X-RateLimit-Remaining')).toBeTruthy();
       expect(response.get('X-RateLimit-Reset')).toBeTruthy();
     });
-  });
-}
 
-function CreateRequestFactory(
-  Platform: Type<AbstractHttpAdapter<any, any, any>>,
-) {
-  return async function createRequest(
-    rmModule: DynamicModule,
-    params?: RateLimiterParams,
-  ) {
-    const handlerDecorator = params
-      ? applyDecorators(RateLimiter(params), Get())
-      : Get();
-
-    @Controller('/')
-    class TestController {
-      @handlerDecorator
-      get() {
-        return {};
+    it('set default `getId` in forRootAsync method works', async () => {
+      @Injectable()
+      class ConfigService {
+        id = (iterator++).toString();
       }
-    }
 
-    // tslint:disable-next-line: max-classes-per-file
-    @Module({
-      imports: [rmModule, RedisModule.register({})],
-      controllers: [TestController],
-    })
-    class TestModule {}
+      // tslint:disable-next-line: max-classes-per-file
+      @Module({
+        providers: [ConfigService],
+        exports: [ConfigService],
+      })
+      class ConfigModule {}
 
-    const app = await NestFactory.create(TestModule, new Platform(), {
-      logger: false,
+      const response = await createRequest(
+        RateLimiterModule.forRootAsync({
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory: (test: ConfigService) => {
+            return { getId: () => test.id };
+          },
+        }),
+      );
+
+      expect(response.get('X-RateLimit-Limit')).toBeTruthy();
+      expect(response.get('X-RateLimit-Remaining')).toBeTruthy();
+      expect(response.get('X-RateLimit-Reset')).toBeTruthy();
     });
-    app.useGlobalGuards(app.get(RATELIMITER_GUARD_TOKEN));
 
-    const server = app.getHttpServer();
+    it('set `getId` in decorator params works', async () => {
+      const response = await createRequest(RateLimiterModule.forRoot(), {
+        getId: () => (iterator++).toString(),
+      });
 
-    await app.init();
-    await fastifyExtraWait(Platform, app);
-    const response = await request(server).get('/');
-    await app.close();
-
-    return response;
-  };
+      expect(response.get('X-RateLimit-Limit')).toBeTruthy();
+      expect(response.get('X-RateLimit-Remaining')).toBeTruthy();
+      expect(response.get('X-RateLimit-Reset')).toBeTruthy();
+    });
+  });
 }
