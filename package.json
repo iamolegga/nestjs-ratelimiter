@@ -1,0 +1,84 @@
+{
+  "name": "nestjs-ratelimiter",
+  "version": "0.1.0",
+  "description": "Distributed consistent flexible NestJS rate limiter based on Redis",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest --forceExit",
+    "build": "rm -rf ./dist && tsc --p tsconfig.build.json",
+    "report": "cat ./coverage/lcov.info | coveralls",
+    "test:local": "docker-compose up -d && jest --forceExit ; docker-compose down"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamolegga/nestjs-ratelimiter.git"
+  },
+  "keywords": [
+    "nest",
+    "nestjs",
+    "nest.js",
+    "rate",
+    "ratelimit",
+    "ratelimiter",
+    "limit",
+    "limiter",
+    "redis"
+  ],
+  "author": "Oleg Repin <iamolegga@gmail.com> (http://github.com/iamolegga)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/iamolegga/nestjs-ratelimiter/issues"
+  },
+  "homepage": "https://github.com/iamolegga/nestjs-ratelimiter#readme",
+  "dependencies": {
+    "@types/ratelimiter": "^2.1.28"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^6.0.0",
+    "@nestjs/core": "^6.0.0",
+    "nestjs-redis": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "ms": "^2.0.0"
+  },
+  "devDependencies": {
+    "@nestjs/common": "^6.9.0",
+    "@nestjs/core": "^6.9.0",
+    "@nestjs/platform-express": "^6.9.0",
+    "@nestjs/platform-fastify": "^6.9.0",
+    "@types/jest": "^24.0.23",
+    "@types/ms": "^0.7.31",
+    "@types/node": "^12.12.7",
+    "@types/supertest": "^2.0.8",
+    "coveralls": "^3.0.7",
+    "jest": "^24.9.0",
+    "ms": "^2.1.2",
+    "nestjs-redis": "^1.2.3",
+    "prettier": "^1.19.1",
+    "ratelimiter": "^3.4.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^6.5.3",
+    "supertest": "^4.0.2",
+    "ts-jest": "^24.1.0",
+    "tslint": "^5.20.1",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-plugin-prettier": "^2.0.1",
+    "typescript": "^3.7.2"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "ts"
+    ],
+    "testRegex": ".spec.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverage": true,
+    "coverageDirectory": "./coverage",
+    "collectCoverageFrom": [
+      "src/**/*.ts"
+    ],
+    "testEnvironment": "node"
+  }
+}

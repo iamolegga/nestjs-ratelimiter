@@ -1,0 +1,7 @@
+version: '3.5'
+
+services:
+  nestjs-ratelimiter-redis:
+    image: redis:4.0-alpine
+    ports:
+      - '6379:6379'
