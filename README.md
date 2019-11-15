@@ -39,7 +39,7 @@ or
 yarn add nest-ratelimiter nestjs-redis
 ```
 
-**If you want to use default response when riching limit (text: "Rate limit exceeded, retry in _human readable time value_") also install `ms`.**
+**If you want to use default response when reaching limit (text: "Rate limit exceeded, retry in _human readable time value_") also install `ms`.**
 
 ```sh
 npm i nest-ratelimiter nestjs-redis ms
