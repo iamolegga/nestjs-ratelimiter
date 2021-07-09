@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/iamolegga/nestjs-ratelimiter#readme",
   "dependencies": {
-    "@types/ratelimiter": "^2.1.28"
+    "@types/ratelimiter": "^3.4.2"
   },
   "peerDependencies": {
     "@nestjs/common": "^6.0.0",
