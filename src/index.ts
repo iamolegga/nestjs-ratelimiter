@@ -1,3 +1,4 @@
+export { LimiterInfo, LimiterOption } from 'ratelimiter';
 export {
   RateLimiterModuleParams,
   RateLimiterModuleParamsAsync,

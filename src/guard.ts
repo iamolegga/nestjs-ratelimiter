@@ -1,3 +1,4 @@
+import { ServerResponse } from 'http';
 import {
   CanActivate,
   ExecutionContext,
@@ -5,29 +6,26 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ServerResponse } from 'http';
-import { RedisService } from 'nestjs-redis';
+import { LimiterInfo, LimiterOption } from 'ratelimiter';
 import { defaultErrorBodyCreator } from './default-error-body-creator';
 import { getLimit } from './get-limit';
 import { DECORATOR_PARAMS_TOKEN, MODULE_PARAMS_TOKEN } from './tokens';
 import { TooManyRequestsException } from './too-many-requests.exception';
 import {
-  LimiterInfo,
-  LimiterOption,
   RateLimiterModuleParams,
   RateLimiterParams,
+  RedisClient,
 } from './types';
 
 export class RateLimiterGuard implements CanActivate {
-  private readonly db: ReturnType<RedisService['getClient']>;
+  private readonly db: RedisClient;
 
   constructor(
     @Inject(MODULE_PARAMS_TOKEN)
     private readonly defaultParams: RateLimiterModuleParams,
     private readonly reflector: Reflector,
-    redis: RedisService,
   ) {
-    this.db = redis.getClient(defaultParams.name);
+    this.db = defaultParams.db;
   }
 
   async canActivate(context: ExecutionContext) {
@@ -48,7 +46,7 @@ export class RateLimiterGuard implements CanActivate {
     // in case of `fastify` get native response via `res` property
     // https://www.fastify.io/docs/latest/Reply/#introduction
     // in case of `express` response inherit native response
-    const nativeResponse: ServerResponse = response.res || response;
+    const nativeResponse: ServerResponse = response.raw || response;
 
     for (const param of paramsList) {
       await this.checkSingleParam(param, context, nativeResponse);
@@ -74,17 +72,13 @@ export class RateLimiterGuard implements CanActivate {
     } catch (error) {
       throw new InternalServerErrorException(
         'Can not get id for rate limiter',
-        error,
+        String(error),
       );
     }
 
     const limiterParams: LimiterOption = {
       id,
-      // limiter accept instance of 'redis' and 'ioredis':
-      // https://github.com/tj/node-ratelimiter/blob/master/test/index.js#L9
-      // this is a bug in typings:
-      // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/ratelimiter/index.d.ts#L7
-      db: this.db as any,
+      db: this.db,
       max: param.max || this.defaultParams.max,
       duration: param.duration || this.defaultParams.duration,
     };
@@ -96,7 +90,7 @@ export class RateLimiterGuard implements CanActivate {
       // Redis error while creating limiter
       throw new InternalServerErrorException(
         'Can not create rate limiter',
-        error,
+        String(error),
       );
     }
 
@@ -112,7 +106,6 @@ export class RateLimiterGuard implements CanActivate {
     response: ServerResponse,
     param: RateLimiterParams,
   ) {
-    // tslint:disable-next-line: no-bitwise
     const after = (limit.reset - Date.now() / 1000) | 0;
     response.setHeader('Retry-After', after);
 

@@ -1,4 +1,5 @@
 import { HttpStatus, Injectable, Module } from '@nestjs/common';
+import * as Redis from 'redis-mock';
 import { RateLimiterModule } from '../src';
 import { CreateRequestFactory } from './utils/create-request-factory';
 import { platforms } from './utils/platforms';
@@ -10,9 +11,10 @@ for (const platform of platforms) {
     const createRequest = CreateRequestFactory(platform);
 
     it('set default `getId` in forRoot method works', async () => {
+      const db = Redis.createClient();
       const id = (iterator++).toString();
       const response = await createRequest(
-        RateLimiterModule.forRoot({ getId: () => id }),
+        RateLimiterModule.forRoot({ getId: () => id, db }),
       );
 
       expect(response.get('X-RateLimit-Limit')).toBeTruthy();
@@ -21,12 +23,13 @@ for (const platform of platforms) {
     });
 
     it('set default `getId` in forRootAsync method works', async () => {
+      const db = Redis.createClient();
+
       @Injectable()
       class ConfigService {
         id = (iterator++).toString();
       }
 
-      // tslint:disable-next-line: max-classes-per-file
       @Module({
         providers: [ConfigService],
         exports: [ConfigService],
@@ -38,7 +41,7 @@ for (const platform of platforms) {
           imports: [ConfigModule],
           inject: [ConfigService],
           useFactory: (test: ConfigService) => {
-            return { getId: () => test.id };
+            return { getId: () => test.id, db };
           },
         }),
       );
@@ -49,8 +52,9 @@ for (const platform of platforms) {
     });
 
     it('set `getId` in decorator params works', async () => {
+      const db = Redis.createClient();
       const id = (iterator++).toString();
-      const response = await createRequest(RateLimiterModule.forRoot(), {
+      const response = await createRequest(RateLimiterModule.forRoot({ db }), {
         getId: () => id,
       });
 
@@ -60,7 +64,9 @@ for (const platform of platforms) {
     });
 
     it('if `getId` throws error returns 500 with corresponding msg', async () => {
-      const response = await createRequest(RateLimiterModule.forRoot(), {
+      const db = Redis.createClient();
+
+      const response = await createRequest(RateLimiterModule.forRoot({ db }), {
         getId: () => {
           throw new Error();
         },
@@ -75,9 +81,10 @@ for (const platform of platforms) {
     });
 
     it('reach limit works', async () => {
+      const db = Redis.createClient();
       const id = (iterator++).toString();
       const response = await createRequest(
-        RateLimiterModule.forRoot(),
+        RateLimiterModule.forRoot({ db }),
         {
           getId: () => id,
           max: 1,
@@ -96,7 +103,8 @@ for (const platform of platforms) {
     });
 
     it('skip when not set', async () => {
-      const response = await createRequest(RateLimiterModule.forRoot());
+      const db = Redis.createClient();
+      const response = await createRequest(RateLimiterModule.forRoot({ db }));
 
       expect(response.status).toBe(HttpStatus.OK);
       expect(response.body).toEqual({});
@@ -107,9 +115,10 @@ for (const platform of platforms) {
     });
 
     it('set `false` in decorator turns off rate limiter', async () => {
+      const db = Redis.createClient();
       const id = (iterator++).toString();
       const response = await createRequest(
-        RateLimiterModule.forRoot({ getId: () => id }),
+        RateLimiterModule.forRoot({ getId: () => id, db }),
         false,
       );
 
