@@ -5,10 +5,10 @@ import { RateLimiterModuleParams, RateLimiterModuleParamsAsync } from './types';
 
 @Module({})
 export class RateLimiterModule {
-  static forRoot(params?: RateLimiterModuleParams): DynamicModule {
+  static forRoot(params: RateLimiterModuleParams): DynamicModule {
     const paramsProvider: Provider<RateLimiterModuleParams> = {
       provide: MODULE_PARAMS_TOKEN,
-      useValue: params || {},
+      useValue: params,
     };
 
     return {

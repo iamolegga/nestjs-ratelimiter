@@ -2,12 +2,22 @@
   "name": "nest-ratelimiter",
   "version": "0.1.2",
   "description": "Distributed consistent flexible NestJS rate limiter based on Redis",
-  "main": "dist/index.js",
+  "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
-    "test": "jest --forceExit",
-    "build": "rm -rf ./dist && tsc --p tsconfig.build.json",
-    "report": "cat ./coverage/lcov.info | coveralls",
-    "test:local": "docker-compose up -d && jest --forceExit ; docker-compose down"
+    "test": "jest --verbose -i --detectOpenHandles",
+    "lint": "eslint \"{src,__tests__}/**/*.ts\" --fix",
+    "prebuild": "rimraf dist",
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build && cp -r ./dist/* .",
+    "postpublish": "git clean -fd"
+  },
+  "files": [
+    "*.{js,d.ts}"
+  ],
+  "engineStrict": true,
+  "engines": {
+    "node": ">=12.0.0"
   },
   "repository": {
     "type": "git",
@@ -30,40 +40,47 @@
     "url": "https://github.com/iamolegga/nestjs-ratelimiter/issues"
   },
   "homepage": "https://github.com/iamolegga/nestjs-ratelimiter#readme",
-  "dependencies": {
-    "@types/ratelimiter": "^2.1.28"
-  },
   "peerDependencies": {
-    "@nestjs/common": "^6.0.0",
-    "@nestjs/core": "^6.0.0",
-    "nestjs-redis": "^1.0.0"
+    "@nestjs/common": ">=6.0.0",
+    "@nestjs/core": ">=6.0.0",
+    "@types/ratelimiter": "^3.4.2",
+    "ms": "^2.0.0",
+    "ratelimiter": "^3.4.1"
   },
-  "optionalDependencies": {
-    "ms": "^2.0.0"
+  "peerDependenciesMeta": {
+    "ms": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "@nestjs/common": "^6.9.0",
-    "@nestjs/core": "^6.9.0",
-    "@nestjs/platform-express": "^7.0.0",
-    "@nestjs/platform-fastify": "^7.0.0",
-    "@types/jest": "^26.0.0",
-    "@types/ms": "^0.7.31",
-    "@types/node": "^14.0.1",
-    "@types/supertest": "^2.0.8",
-    "coveralls": "^3.0.7",
-    "jest": "^25.1.0",
-    "ms": "^2.1.2",
-    "nestjs-redis": "^1.2.3",
-    "prettier": "^2.0.2",
-    "ratelimiter": "^3.4.0",
+    "@nestjs/common": "^8.0.0",
+    "@nestjs/core": "^8.0.0",
+    "@nestjs/platform-express": "^8.0.0",
+    "@nestjs/platform-fastify": "^8.0.0",
+    "@types/jest": "^27.0.1",
+    "@types/node": "^16.0.0",
+    "@types/ratelimiter": "^3.4.2",
+    "@types/redis-mock": "^0.17.0",
+    "@types/supertest": "^2.0.11",
+    "@typescript-eslint/eslint-plugin": "^4.29.3",
+    "@typescript-eslint/parser": "^4.29.3",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.24.2",
+    "eslint-plugin-prettier": "^4.0.0",
+    "jest": "27.1.0",
+    "ms": "^2.0.0",
+    "prettier": "^2.3.2",
+    "ratelimiter": "^3.4.1",
+    "redis-mock": "^0.56.3",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^6.5.3",
-    "supertest": "^6.0.1",
-    "ts-jest": "^25.0.0",
-    "tslint": "^6.1.0",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "^3.7.2"
+    "rimraf": "^3.0.2",
+    "rxjs": "^7.2.0",
+    "supertest": "^6.1.3",
+    "ts-jest": "^27.0.3",
+    "ts-loader": "^9.2.3",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.5"
   },
   "jest": {
     "moduleFileExtensions": [

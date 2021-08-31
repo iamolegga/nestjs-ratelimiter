@@ -7,7 +7,6 @@ import {
   Type,
 } from '@nestjs/common';
 import { AbstractHttpAdapter, NestFactory } from '@nestjs/core';
-import { RedisModule } from 'nestjs-redis';
 import * as request from 'supertest';
 import {
   RateLimiter,
@@ -37,9 +36,8 @@ export function CreateRequestFactory(
       }
     }
 
-    // tslint:disable-next-line: max-classes-per-file
     @Module({
-      imports: [rmModule, RedisModule.register({})],
+      imports: [rmModule],
       controllers: [TestController],
     })
     class AppModule {}
@@ -53,13 +51,13 @@ export function CreateRequestFactory(
 
     await app.init();
     await fastifyExtraWait(Platform, app);
-    let response: request.Response;
+    let response = await request(server).get('/');
 
-    for (let i = 0; i < requestsCount; i++) {
+    for (let i = 0; i < requestsCount - 1; i++) {
       response = await request(server).get('/');
     }
     await app.close();
 
-    return response!;
+    return response;
   };
 }

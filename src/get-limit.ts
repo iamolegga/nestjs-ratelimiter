@@ -1,10 +1,11 @@
 import * as Limiter from 'ratelimiter';
-import { LimiterInfo, LimiterOption } from './types';
 
-export async function getLimit(params: LimiterOption): Promise<LimiterInfo> {
+export async function getLimit(
+  params: Limiter.LimiterOption,
+): Promise<Limiter.LimiterInfo> {
   const limiter = new Limiter(params);
 
-  return new Promise<LimiterInfo>((resolve, reject) => {
+  return new Promise<Limiter.LimiterInfo>((resolve, reject) => {
     limiter.get((err, limit) => {
       if (err) {
         reject(err);
