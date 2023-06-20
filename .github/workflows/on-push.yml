@@ -11,14 +11,14 @@ jobs:
     secrets: inherit
 
   publish-alpha:
-    if: github.ref == 'refs/heads/main' && github.actor != 'dependabot[bot]' && github.actor != 'mergify[bot]'
+    if: github.ref == 'refs/heads/master' && github.actor != 'dependabot[bot]' && github.actor != 'mergify[bot]'
     needs:
       - build-lint-test
     uses: ./.github/workflows/publish-alpha.yml
     secrets: inherit
 
   coverage:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
     needs:
       - build-lint-test
     uses: ./.github/workflows/publish-coverage.yml

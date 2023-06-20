@@ -1,9 +1,9 @@
-name: on-pr-main
+name: on-pr-master
 
 on:
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
   build-lint-test:
