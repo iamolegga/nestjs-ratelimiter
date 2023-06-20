@@ -1,5 +1,6 @@
 import { LimiterInfo } from 'ratelimiter';
-import { CreateErrorBodyFn } from './types';
+
+import { CreateErrorBodyFn } from '../params';
 
 export const defaultErrorBodyCreator: CreateErrorBodyFn = (
   limit: LimiterInfo,

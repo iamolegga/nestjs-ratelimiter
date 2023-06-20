@@ -1,0 +1,11 @@
+name: on-pr-main
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-lint-test:
+    uses: ./.github/workflows/build-lint-test.yml
+    secrets: inherit

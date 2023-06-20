@@ -4,23 +4,21 @@
   <a href="https://www.npmjs.com/package/nest-ratelimiter">
     <img alt="npm" src="https://img.shields.io/npm/v/nest-ratelimiter" />
   </a>
-  <img alt="GitHub branch checks state" src="https://badgen.net/github/checks/iamolegga/nestjs-ratelimiter" />
+  <img alt="Installs" src="https://img.shields.io/npm/dm/nest-ratelimiter" />
+  <a href="https://github.com/iamolegga/nestjs-ratelimiter/actions/workflows/on-push.yml?query=branch%3Amain">
+    <img alt="GitHub Workflow Status (with branch)" src="https://img.shields.io/github/actions/workflow/status/iamolegga/nestjs-ratelimiter/on-push.yml?branch=main">
+  </a>
   <a href="https://codeclimate.com/github/iamolegga/nestjs-ratelimiter/test_coverage">
     <img src="https://api.codeclimate.com/v1/badges/abcce849fa20ece7a413/test_coverage" />
   </a>
   <img alt="Supported platforms: Express & Fastify" src="https://img.shields.io/badge/platforms-Express%20%26%20Fastify-green" />
-</p>
-<p align="center">
   <a href="https://snyk.io/test/github/iamolegga/nestjs-ratelimiter">
     <img alt="Snyk Vulnerabilities for npm package" src="https://img.shields.io/snyk/vulnerabilities/npm/nest-ratelimiter" />
   </a>
-  <a href="https://david-dm.org/iamolegga/nestjs-ratelimiter">
-    <img alt="Dependencies status" src="https://badgen.net/david/dep/iamolegga/nestjs-ratelimiter">
+  <a href="https://libraries.io/npm/nest-ratelimiter">
+    <img alt="Libraries.io" src="https://img.shields.io/librariesio/release/npm/nest-ratelimiter">
   </a>
-  <img alt="Dependabot" src="https://badgen.net/dependabot/iamolegga/nestjs-ratelimiter/?icon=dependabot">
-  <a href="https://codeclimate.com/github/iamolegga/nestjs-ratelimiter">
-    <img alt="Maintainability" src="https://badgen.net/codeclimate/maintainability/iamolegga/nestjs-ratelimiter">
-  </a>
+  <img alt="Dependabot" src="https://badgen.net/github/dependabot/iamolegga/nest-ratelimiter" />
 </p>
 
 <p align="center"><b>The most flexible NestJS rate limiter based on Redis (rate limit against not only req path but req body to block distributed brute force attacks).</b></p>
@@ -31,7 +29,7 @@
 npm i nest-ratelimiter ratelimiter @types/ratelimiter
 ```
 
-**If you want to use default response when reaching limit (text: "Rate limit exceeded, retry in _human readable time value_") also install `ms`.**
+**If you want to use the default response when reaching a limit (text: "Rate limit exceeded, retry in _human readable time value_") also install `ms`.**
 
 ```sh
 npm i nest-ratelimiter ratelimiter @types/ratelimiter ms
@@ -39,11 +37,13 @@ npm i nest-ratelimiter ratelimiter @types/ratelimiter ms
 
 ## Usage
 
+### Decorator
+
 Let's start with controllers.
-Controllers are the places where you set parameters for rate-limiter guard.
+Controllers are the places where you set parameters for the rate-limiter guard.
 You can set parameters for an entire controller or handler.
 Also, you can override the parameters of an entire controller by providing parameters for a specific handler.
-And finally, you can set several params for multi-checking.
+And finally, you can set several parameters for multi-checking.
 
 ```ts
 import { RateLimiter, LimiterInfo } from 'nest-ratelimiter';
@@ -130,10 +130,58 @@ class TestController {
 }
 ```
 
-Please, check out the docs of [ratelimiter npm module](https://www.npmjs.com/package/ratelimiter#result-object) for better understanding of `@RateLimiter` configuration.
+Please, check out the docs of [ratelimiter npm module](https://www.npmjs.com/package/ratelimiter#result-object) for a better understanding of `@RateLimiter` configuration.
+
+
+### Service
+
+Another feature is using rate limiting in complex scenarios when `id` could not be retrieved from request context. For example when it's required to make a request for id in 3rd party systems:
+
+```ts
+import {
+  RATE_LIMITER_ASSERTER_TOKEN,
+  RateLimiterAsserter,
+  setHeaders,
+} from 'nest-ratelimiter'
+
+@Controller('/')
+class TestController {
+  constructor(
+    @Inject(RATE_LIMITER_ASSERTER_TOKEN)
+    private asserter: RateLimiterAsserter,
+    private db: DB;
+  ) {}
+
+  @Get('some-api')
+  someApi(
+    @Res({ passthrough: true }) response: any
+  ) {
+    const id = await this.db.getId();
+
+    // this potentially throws `RateLimiterError` which is handled by internal
+    // filter and mapped to `TooManyRequestsException`. If that doesn't fit your
+    // needs, semply use filters, interceptors, try/catch to handle those errors
+    const limiterInfo = this.asserter.assert({
+      id,
+      max: 10,
+      duration: 24 * 60 * 60 * 1000,
+    });
+
+    // In this simple example limiterInfo is retrieved in controller and
+    // `X-RateLimit-...` headers could be easily set with `setHeaders` function.
+    // In a real world scenario this is done on a services layer and in a such
+    // case limiterInfo should be passed back to a controller where there is an
+    // access to underlying framework's response object. But this is optional
+    // and only required if there is a need for such headers in a positive case.
+    setHeaders(response, limiterInfo);
+  }
+}
+```
+
+## Setup
 
 Let's move to module registration.
-As `nest-ratelimiter` is using `redis` as data store you have to provide an instance of Redis client (`redis` or `ioredis`). As Redis client instantiation is out of scope of this package, you can find something that fit your needs [on npm](https://www.npmjs.com/search?q=nestjs%20redis) or create your own module for NestJS. Here we will show an example with [nestjs-redis](https://www.npmjs.com/package/nestjs-redis) module:
+As `nest-ratelimiter` is using Redis as a data storage you have to provide an instance of `Redis` client (`redis` or `ioredis`). As Redis client instantiation is out of the scope of this package, you can find something that fits your needs [on npm](https://www.npmjs.com/search?q=nestjs%20redis) or create your own module for NestJS. Here we will show two examples: with [redis](https://www.npmjs.com/package/redis) and [nestjs-redis](https://www.npmjs.com/package/nestjs-redis) modules:
 
 ```ts
 import { RedisModule } from 'nestjs-redis';
@@ -141,13 +189,18 @@ import { RateLimiterModule, LimiterInfo } from 'nest-ratelimiter';
 
 @Module({
   imports: [
+
+    // redis example
+
     RateLimiterModule.forRoot({
 
       // The only required field is `db` (redis client), all the rest fields
-      // will be used as defaults for `@RateLimiter(...)`
+      // will be used as defaults for `@RateLimiter(...)` and RateLimiterAsserter
       db: require("redis").createClient()
 
     }),
+
+    // nestjs-redis example
 
     RateLimiterModule.forRootAsync({
 
@@ -195,20 +248,17 @@ import { RateLimiterModule, LimiterInfo } from 'nest-ratelimiter';
 class TestModule {}
 ```
 
-And the last thing to do is set up guard globally:
-
-```ts
-import { RATELIMITER_GUARD_TOKEN } from 'nest-ratelimiter';
-
-const app = await NestFactory.create(AppModule);
-app.useGlobalGuards(app.get(RATELIMITER_GUARD_TOKEN));
-```
-
 ## Comparison with others
 
-This `nest-ratelimiter` is using TJ's [ratelimiter](https://www.npmjs.com/package/ratelimiter) package underhood, so it allows the creation of really flexible strategy for limiting not only per request path but per **headers** or **body** values and so on (see examples above). **It stores data only in `redis`**. If you need another store you can look at [nestjs-rate-limiter](https://www.npmjs.com/package/nestjs-rate-limiter), but it allows the use of strategies based on request path only. Also there is an example in [official docs](https://docs.nestjs.com/techniques/security#rate-limiting) with setting up [express-rate-limit](https://www.npmjs.com/package/express-rate-limit) middleware.
+This `nest-ratelimiter` is using TJ's [ratelimiter](https://www.npmjs.com/package/ratelimiter) package underhood, so it allows the creation of a flexible strategy for limiting not only per request path but per **headers** or **body** values or even asynchronously computed values on a services layer. **It stores data only in `redis`**. If you need another store you can look at [nestjs-rate-limiter](https://www.npmjs.com/package/nestjs-rate-limiter), but it allows the use of strategies based on a request path only. Also, there is an example in [official docs](https://docs.nestjs.com/techniques/security#rate-limiting) with setting up [express-rate-limit](https://www.npmjs.com/package/express-rate-limit) middleware.
 
 ## Migration
+
+### 0.3.0
+
+- no need to use `app.useGlobalGuards` as now it's set automatically
+- dropped support of nestjs < 8.0.0
+- dropped support of node < 16.0.0
 
 ### 0.2.0
 
@@ -219,74 +269,4 @@ This `nest-ratelimiter` is using TJ's [ratelimiter](https://www.npmjs.com/packag
 
 <h2 align="center">Do you use this library?<br/>Don't be shy to give it a star! ★</h2>
 
-Also, if you are into NestJS ecosystem you may be interested in one of my other libs:
-
-[nestjs-pino](https://github.com/iamolegga/nestjs-pino)
-
-[![GitHub stars](https://img.shields.io/github/stars/iamolegga/nestjs-pino?style=flat-square)](https://github.com/iamolegga/nestjs-pino)
-[![npm](https://img.shields.io/npm/dm/nestjs-pino?style=flat-square)](https://www.npmjs.com/package/nestjs-pino)
-
-Platform agnostic logger for NestJS based on [pino](http://getpino.io/) with request context in every log
-
----
-
-[nestjs-session](https://github.com/iamolegga/nestjs-session)
-
-[![GitHub stars](https://img.shields.io/github/stars/iamolegga/nestjs-session?style=flat-square)](https://github.com/iamolegga/nestjs-session)
-[![npm](https://img.shields.io/npm/dm/nestjs-session?style=flat-square)](https://www.npmjs.com/package/nestjs-session)
-
-Idiomatic session module for NestJS. Built on top of [express-session](https://www.npmjs.com/package/express-session)
-
----
-
-[nestjs-cookie-session](https://github.com/iamolegga/nestjs-cookie-session)
-
-[![GitHub stars](https://img.shields.io/github/stars/iamolegga/nestjs-cookie-session?style=flat-square)](https://github.com/iamolegga/nestjs-cookie-session)
-[![npm](https://img.shields.io/npm/dm/nestjs-cookie-session?style=flat-square)](https://www.npmjs.com/package/nestjs-cookie-session)
-
-Idiomatic cookie session module for NestJS. Built on top of [cookie-session](https://www.npmjs.com/package/cookie-session)
-
----
-
-[nestjs-roles](https://github.com/iamolegga/nestjs-roles)
-
-[![GitHub stars](https://img.shields.io/github/stars/iamolegga/nestjs-roles?style=flat-square)](https://github.com/iamolegga/nestjs-roles)
-[![npm](https://img.shields.io/npm/dm/nestjs-roles?style=flat-square)](https://www.npmjs.com/package/nestjs-roles)
-
-Type safe roles guard and decorator made easy
-
----
-
-[nestjs-injectable](https://github.com/segmentstream/nestjs-injectable)
-
-[![GitHub stars](https://img.shields.io/github/stars/segmentstream/nestjs-injectable?style=flat-square)](https://github.com/segmentstream/nestjs-injectable)
-[![npm](https://img.shields.io/npm/dm/nestjs-injectable?style=flat-square)](https://www.npmjs.com/package/nestjs-injectable)
-
-`@Injectable()` on steroids that simplifies work with inversion of control in your hexagonal architecture
-
----
-
-[nest-ratelimiter](https://github.com/iamolegga/nestjs-ratelimiter)
-
-[![GitHub stars](https://img.shields.io/github/stars/iamolegga/nestjs-ratelimiter?style=flat-square)](https://github.com/iamolegga/nestjs-ratelimiter)
-[![npm](https://img.shields.io/npm/dm/nest-ratelimiter?style=flat-square)](https://www.npmjs.com/package/nest-ratelimiter)
-
-Distributed consistent flexible NestJS rate limiter based on Redis
-
----
-
-[create-nestjs-middleware-module](https://github.com/iamolegga/create-nestjs-middleware-module)
-
-[![GitHub stars](https://img.shields.io/github/stars/iamolegga/create-nestjs-middleware-module?style=flat-square)](https://github.com/iamolegga/create-nestjs-middleware-module)
-[![npm](https://img.shields.io/npm/dm/create-nestjs-middleware-module?style=flat-square)](https://www.npmjs.com/package/create-nestjs-middleware-module)
-
-Create simple idiomatic NestJS module based on Express/Fastify middleware in just a few lines of code with routing out of the box
-
----
-
-[nestjs-configure-after](https://github.com/iamolegga/nestjs-configure-after)
-
-[![GitHub stars](https://img.shields.io/github/stars/iamolegga/nestjs-configure-after?style=flat-square)](https://github.com/iamolegga/nestjs-configure-after)
-[![npm](https://img.shields.io/npm/dm/nestjs-configure-after?style=flat-square)](https://www.npmjs.com/package/nestjs-configure-after)
-
-Declarative configuration of NestJS middleware order
+<h3 align="center">Also if you are into NestJS you might be interested in one of my <a href="https://github.com/iamolegga#nestjs">other NestJS libs</a>.</h3>
