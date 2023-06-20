@@ -14,7 +14,7 @@
   },
   "files": [
     "**/*.{js,d.ts}",
-    "!dist/",
+    "!dist/**/*",
     "!jest.config.js",
     "!.eslintrc.js"
   ],
