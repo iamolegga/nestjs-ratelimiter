@@ -5,8 +5,8 @@
     <img alt="npm" src="https://img.shields.io/npm/v/nest-ratelimiter" />
   </a>
   <img alt="Installs" src="https://img.shields.io/npm/dm/nest-ratelimiter" />
-  <a href="https://github.com/iamolegga/nestjs-ratelimiter/actions/workflows/on-push.yml?query=branch%3Amain">
-    <img alt="GitHub Workflow Status (with branch)" src="https://img.shields.io/github/actions/workflow/status/iamolegga/nestjs-ratelimiter/on-push.yml?branch=main">
+  <a href="https://github.com/iamolegga/nestjs-ratelimiter/actions/workflows/on-push.yml?query=branch%3Amaster">
+    <img alt="GitHub Workflow Status (with branch)" src="https://img.shields.io/github/actions/workflow/status/iamolegga/nestjs-ratelimiter/on-push.yml?branch=master">
   </a>
   <a href="https://codeclimate.com/github/iamolegga/nestjs-ratelimiter/test_coverage">
     <img src="https://api.codeclimate.com/v1/badges/abcce849fa20ece7a413/test_coverage" />
