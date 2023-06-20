@@ -1,7 +1,13 @@
 import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { provider } from './provider';
-import { MODULE_PARAMS_TOKEN } from './tokens';
-import { RateLimiterModuleParams, RateLimiterModuleParamsAsync } from './types';
+
+import { rateLimiterAsserterProvider } from './asserter.svc';
+import { rateLimiterFilterProvider } from './filter';
+import { rateLimiterGuardProvider } from './guard';
+import {
+  MODULE_PARAMS_TOKEN,
+  RateLimiterModuleParams,
+  RateLimiterModuleParamsAsync,
+} from './params';
 
 @Module({})
 export class RateLimiterModule {
@@ -13,8 +19,14 @@ export class RateLimiterModule {
 
     return {
       module: RateLimiterModule,
-      providers: [paramsProvider, provider],
-      exports: [provider],
+      providers: [
+        paramsProvider,
+        rateLimiterGuardProvider,
+        rateLimiterFilterProvider,
+        rateLimiterAsserterProvider,
+      ],
+      exports: [rateLimiterAsserterProvider],
+      global: true,
     };
   }
 
@@ -30,8 +42,14 @@ export class RateLimiterModule {
     return {
       module: RateLimiterModule,
       imports: params.imports,
-      providers: [paramsProvider, provider],
-      exports: [provider],
+      providers: [
+        paramsProvider,
+        rateLimiterGuardProvider,
+        rateLimiterFilterProvider,
+        rateLimiterAsserterProvider,
+      ],
+      exports: [rateLimiterAsserterProvider],
+      global: true,
     };
   }
 }

@@ -7,11 +7,9 @@ export async function getLimit(
 
   return new Promise<Limiter.LimiterInfo>((resolve, reject) => {
     limiter.get((err, limit) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(limit);
-      }
+      /* istanbul ignore next */
+      if (err) reject(err);
+      else resolve(limit);
     });
   });
 }

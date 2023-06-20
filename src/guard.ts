@@ -1,45 +1,45 @@
 import { ServerResponse } from 'http';
+
 import {
   CanActivate,
+  ClassProvider,
   ExecutionContext,
   Inject,
+  Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { LimiterInfo, LimiterOption } from 'ratelimiter';
-import { defaultErrorBodyCreator } from './default-error-body-creator';
-import { getLimit } from './get-limit';
-import { DECORATOR_PARAMS_TOKEN, MODULE_PARAMS_TOKEN } from './tokens';
-import { TooManyRequestsException } from './too-many-requests.exception';
+import { APP_GUARD, Reflector } from '@nestjs/core';
+
 import {
+  RATE_LIMITER_ASSERTER_TOKEN,
+  RateLimiterAsserter,
+  RateLimiterError,
+} from './asserter.interface';
+import {
+  DECORATOR_PARAMS_TOKEN,
+  MODULE_PARAMS_TOKEN,
   RateLimiterModuleParams,
   RateLimiterParams,
-  RedisClient,
-} from './types';
+} from './params';
+import { TooManyRequestsException } from './too-many-requests.exception';
+import { setHeaders } from './utils/set-headers.fn';
 
+@Injectable()
 export class RateLimiterGuard implements CanActivate {
-  private readonly db: RedisClient;
-
   constructor(
     @Inject(MODULE_PARAMS_TOKEN)
     private readonly defaultParams: RateLimiterModuleParams,
+    @Inject(RATE_LIMITER_ASSERTER_TOKEN)
+    private readonly asserter: RateLimiterAsserter,
     private readonly reflector: Reflector,
-  ) {
-    this.db = defaultParams.db;
-  }
+  ) {}
 
   async canActivate(context: ExecutionContext) {
-    let paramsList = this.reflector.getAllAndOverride<
+    const paramsList = this.reflector.getAllAndOverride<
       RateLimiterParams[] | [false] | undefined
     >(DECORATOR_PARAMS_TOKEN, [context.getHandler(), context.getClass()]);
 
-    if (isTurnedOff(paramsList)) {
-      return true;
-    }
-
-    if (!paramsList) {
-      paramsList = [{}];
-    }
+    if (isTurnedOff(paramsList)) return true;
 
     const response = context.switchToHttp().getResponse();
 
@@ -48,7 +48,7 @@ export class RateLimiterGuard implements CanActivate {
     // in case of `express` response inherit native response
     const nativeResponse: ServerResponse = response.raw || response;
 
-    for (const param of paramsList) {
+    for (const param of paramsList || [{}]) {
       await this.checkSingleParam(param, context, nativeResponse);
     }
 
@@ -56,75 +56,65 @@ export class RateLimiterGuard implements CanActivate {
   }
 
   private async checkSingleParam(
-    param: RateLimiterParams,
+    params: RateLimiterParams,
     context: ExecutionContext,
     response: ServerResponse,
   ) {
-    const getId = param.getId || this.defaultParams.getId;
-    if (!getId) {
-      return;
-    }
+    const id = await this.getId(params, context);
+    if (!id) return;
 
-    let id: string;
+    const { max, duration, createErrorBody } = params;
 
     try {
-      id = await getId(context);
+      const limit = await this.asserter.assert({
+        id,
+        max,
+        duration,
+        createErrorBody,
+      });
+      setHeaders(response, limit);
+    } catch (error) {
+      /* istanbul ignore else */
+      if (error instanceof RateLimiterError) {
+        response.setHeader(
+          'Retry-After',
+          (error.limiterInfo.reset - Date.now() / 1000) | 0,
+        );
+        setHeaders(response, error.limiterInfo);
+        throw new TooManyRequestsException(error.message);
+      } else throw error;
+    }
+  }
+
+  private async getId(params: RateLimiterParams, context: ExecutionContext) {
+    let id: string | undefined = undefined;
+    try {
+      if ('id' in params) {
+        id = params.id;
+      } else if ('getId' in params) {
+        id = await params.getId(context);
+      } else if ('id' in this.defaultParams) {
+        id = this.defaultParams.id;
+      } else if ('getId' in this.defaultParams && this.defaultParams.getId) {
+        id = await this.defaultParams.getId(context);
+      }
     } catch (error) {
       throw new InternalServerErrorException(
         'Can not get id for rate limiter',
         String(error),
       );
     }
-
-    const limiterParams: LimiterOption = {
-      id,
-      db: this.db,
-      max: param.max || this.defaultParams.max,
-      duration: param.duration || this.defaultParams.duration,
-    };
-
-    let limit: LimiterInfo;
-    try {
-      limit = await getLimit(limiterParams);
-    } catch (error) {
-      // Redis error while creating limiter
-      throw new InternalServerErrorException(
-        'Can not create rate limiter',
-        String(error),
-      );
-    }
-
-    setLimitHeaders(response, limit);
-
-    if (limit.remaining < 1) {
-      this.onLimitExceed(limit, response, param);
-    }
-  }
-
-  private onLimitExceed(
-    limit: LimiterInfo,
-    response: ServerResponse,
-    param: RateLimiterParams,
-  ) {
-    const after = (limit.reset - Date.now() / 1000) | 0;
-    response.setHeader('Retry-After', after);
-
-    const createErrorBody =
-      param.createErrorBody ||
-      this.defaultParams.createErrorBody ||
-      defaultErrorBodyCreator;
-    throw new TooManyRequestsException(createErrorBody(limit));
+    return id;
   }
 }
 
 function isTurnedOff(
   params: RateLimiterParams[] | [false] | undefined,
 ): params is [false] {
-  return !!params && params[0] === false;
+  return !!params && params.length === 1 && params[0] === false;
 }
 
-function setLimitHeaders(response: ServerResponse, limit: LimiterInfo) {
-  response.setHeader('X-RateLimit-Limit', limit.total);
-  response.setHeader('X-RateLimit-Remaining', limit.remaining - 1);
-  response.setHeader('X-RateLimit-Reset', limit.reset);
-}
+export const rateLimiterGuardProvider: ClassProvider<CanActivate> = {
+  provide: APP_GUARD,
+  useClass: RateLimiterGuard,
+};
