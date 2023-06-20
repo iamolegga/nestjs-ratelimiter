@@ -13,13 +13,13 @@
     "postpublish": "git clean -fd"
   },
   "files": [
-    "*.{js,d.ts}",
+    "**/*.{js,d.ts}",
     "!jest.config.js",
     "!.eslintrc.js"
   ],
   "engineStrict": true,
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=16.0.0"
   },
   "repository": {
     "type": "git",
