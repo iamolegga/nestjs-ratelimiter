@@ -1,4 +1,4 @@
-import { DynamicModule, Module, Provider } from '@nestjs/common';
+import { DynamicModule, Global, Module, Provider } from '@nestjs/common';
 
 import { rateLimiterAsserterProvider } from './asserter.svc';
 import { rateLimiterFilterProvider } from './filter';
@@ -9,6 +9,7 @@ import {
   RateLimiterModuleParamsAsync,
 } from './params';
 
+@Global()
 @Module({})
 export class RateLimiterModule {
   static forRoot(params: RateLimiterModuleParams): DynamicModule {
@@ -26,7 +27,6 @@ export class RateLimiterModule {
         rateLimiterAsserterProvider,
       ],
       exports: [rateLimiterAsserterProvider],
-      global: true,
     };
   }
 
@@ -49,7 +49,6 @@ export class RateLimiterModule {
         rateLimiterAsserterProvider,
       ],
       exports: [rateLimiterAsserterProvider],
-      global: true,
     };
   }
 }
