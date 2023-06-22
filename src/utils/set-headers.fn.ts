@@ -8,8 +8,11 @@ import { LimiterInfo } from 'ratelimiter';
  * @param limiterInfo - `LimiterInfo` object from `ratelimiter`
  */
 export function setHeaders(response: ServerResponse, limiterInfo: LimiterInfo) {
-  const prevRemaining = response.getHeader('X-RateLimit-Remaining') as string;
-  if (prevRemaining && parseInt(prevRemaining, 10) < limiterInfo.remaining)
+  const prevRemaining = response.getHeader('X-RateLimit-Remaining');
+  if (
+    typeof prevRemaining === 'number' &&
+    prevRemaining < limiterInfo.remaining
+  )
     return;
 
   response.setHeader('X-RateLimit-Limit', limiterInfo.total);

@@ -68,9 +68,15 @@ export function CreateRequestFactory(
       }
     }
 
+    // make a separate module to check that RateLimiterModule is global
+    // and it's exports too
     @Module({
-      imports: [rmModule],
       controllers: [TestController],
+    })
+    class TestControllerModule {}
+
+    @Module({
+      imports: [rmModule, TestControllerModule],
     })
     class AppModule {}
 

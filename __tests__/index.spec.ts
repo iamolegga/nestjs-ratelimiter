@@ -129,20 +129,37 @@ for (const platform of platforms) {
         expect(response.get('X-RateLimit-Reset')).toBeFalsy();
       });
 
-      it('set minimal remaining value', async () => {
+      it('set minimal remaining value (max is sorted ASC)', async () => {
         const db = Redis.createClient();
         const id = Date.now().toString();
         const response = await createRequest(
           RateLimiterModule.forRoot({ db }),
           [
-            { id: '1:' + id, max: 10, duration: 5000 },
-            { id: '2:' + id, max: 20, duration: 5000 },
+            { id: '1:' + id, max: 1, duration: 5000 },
+            { id: '2:' + id, max: 2, duration: 5000 },
           ],
         );
 
         expect(response.get('Retry-After')).toBeFalsy();
         expect(response.get('X-RateLimit-Limit')).toBeTruthy();
-        expect(response.get('X-RateLimit-Remaining')).toBe('9');
+        expect(response.get('X-RateLimit-Remaining')).toBe('0');
+        expect(response.get('X-RateLimit-Reset')).toBeTruthy();
+      });
+
+      it('set minimal remaining value (max is sorted DESC)', async () => {
+        const db = Redis.createClient();
+        const id = Date.now().toString();
+        const response = await createRequest(
+          RateLimiterModule.forRoot({ db }),
+          [
+            { id: '2:' + id, max: 2, duration: 5000 },
+            { id: '1:' + id, max: 1, duration: 5000 },
+          ],
+        );
+
+        expect(response.get('Retry-After')).toBeFalsy();
+        expect(response.get('X-RateLimit-Limit')).toBeTruthy();
+        expect(response.get('X-RateLimit-Remaining')).toBe('0');
         expect(response.get('X-RateLimit-Reset')).toBeTruthy();
       });
 
