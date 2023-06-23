@@ -31,7 +31,10 @@ export class RateLimiterFilter
       (exception.limiterInfo.reset - Date.now() / 1000) | 0,
     );
 
-    return super.catch(new TooManyRequestsException(exception.message), host);
+    return super.catch(
+      new TooManyRequestsException(JSON.parse(exception.message)),
+      host,
+    );
   }
 }
 
