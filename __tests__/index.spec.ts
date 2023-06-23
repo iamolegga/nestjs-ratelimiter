@@ -197,6 +197,28 @@ for (const platform of platforms) {
         expect(response.get('X-RateLimit-Remaining')).toBeTruthy();
         expect(response.get('X-RateLimit-Reset')).toBeTruthy();
       });
+
+      it('createErrorBody works', async () => {
+        const db = Redis.createClient();
+        const id = Date.now().toString();
+        const random = Math.random();
+        const response = await createRequest(
+          RateLimiterModule.forRoot({
+            db,
+            createErrorBody: () => ({ random }),
+          }),
+          { id, max: 1, duration: 1000 },
+          2,
+        );
+
+        expect(response.status).toBe(HttpStatus.TOO_MANY_REQUESTS);
+        expect(response.body).toMatchObject({ random });
+
+        expect(response.get('Retry-After')).toBeTruthy();
+        expect(response.get('X-RateLimit-Limit')).toBeTruthy();
+        expect(response.get('X-RateLimit-Remaining')).toBeTruthy();
+        expect(response.get('X-RateLimit-Reset')).toBeTruthy();
+      });
     });
 
     describe('service', () => {
