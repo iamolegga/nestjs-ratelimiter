@@ -1,6 +1,6 @@
 {
   "name": "nest-ratelimiter",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Distributed consistent flexible NestJS rate limiter based on Redis",
   "main": "index.js",
   "types": "index.d.ts",
