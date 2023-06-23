@@ -19,7 +19,7 @@ export interface RateLimiterAsserter {
 
 export class RateLimiterError extends Error {
   constructor(message: unknown, readonly limiterInfo: LimiterInfo) {
-    super(message as string);
+    super(JSON.stringify(message));
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }

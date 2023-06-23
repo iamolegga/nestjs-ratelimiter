@@ -81,7 +81,7 @@ export class RateLimiterGuard implements CanActivate {
           (error.limiterInfo.reset - Date.now() / 1000) | 0,
         );
         setHeaders(response, error.limiterInfo);
-        throw new TooManyRequestsException(error.message);
+        throw new TooManyRequestsException(JSON.parse(error.message));
       } else throw error;
     }
   }
