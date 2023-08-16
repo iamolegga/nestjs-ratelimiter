@@ -4,21 +4,23 @@
   <a href="https://www.npmjs.com/package/nest-ratelimiter">
     <img alt="npm" src="https://img.shields.io/npm/v/nest-ratelimiter" />
   </a>
-  <img alt="Installs" src="https://img.shields.io/npm/dm/nest-ratelimiter" />
-  <a href="https://github.com/iamolegga/nestjs-ratelimiter/actions/workflows/on-push.yml?query=branch%3Amaster">
-    <img alt="GitHub Workflow Status (with branch)" src="https://img.shields.io/github/actions/workflow/status/iamolegga/nestjs-ratelimiter/on-push.yml?branch=master">
+  <a href="https://www.npmjs.com/package/nest-ratelimiter">
+    <img alt="npm" src="https://img.shields.io/npm/dm/nest-ratelimiter" />
+  </a>
+  <a href="https://github.com/iamolegga/nestjs-ratelimiter/actions">
+    <img alt="GitHub branch checks state" src="https://badgen.net/github/checks/iamolegga/nestjs-ratelimiter" />
   </a>
   <a href="https://codeclimate.com/github/iamolegga/nestjs-ratelimiter/test_coverage">
     <img src="https://api.codeclimate.com/v1/badges/abcce849fa20ece7a413/test_coverage" />
   </a>
-  <img alt="Supported platforms: Express & Fastify" src="https://img.shields.io/badge/platforms-Express%20%26%20Fastify-green" />
   <a href="https://snyk.io/test/github/iamolegga/nestjs-ratelimiter">
-    <img alt="Snyk Vulnerabilities for npm package" src="https://img.shields.io/snyk/vulnerabilities/npm/nest-ratelimiter" />
+    <img alt="Known Vulnerabilities" src="https://snyk.io/test/github/iamolegga/nestjs-ratelimiter/badge.svg" />
   </a>
   <a href="https://libraries.io/npm/nest-ratelimiter">
-    <img alt="Libraries.io" src="https://img.shields.io/librariesio/release/npm/nest-ratelimiter">
+    <img alt="Libraries.io" src="https://img.shields.io/librariesio/release/npm/nest-ratelimiter" />
   </a>
-  <img alt="Dependabot" src="https://badgen.net/github/dependabot/iamolegga/nest-ratelimiter" />
+  <img alt="Dependabot" src="https://badgen.net/github/dependabot/iamolegga/nestjs-ratelimiter" />
+  <img alt="Supported platforms: Express & Fastify" src="https://img.shields.io/badge/platforms-Express%20%26%20Fastify-green" />
 </p>
 
 <p align="center"><b>The most flexible NestJS rate limiter based on Redis (rate limit against not only req path but req body to block distributed brute force attacks).</b></p>
