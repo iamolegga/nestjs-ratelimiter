@@ -9,7 +9,7 @@ import {
   Type,
 } from '@nestjs/common';
 import { AbstractHttpAdapter, NestFactory } from '@nestjs/core';
-import * as request from 'supertest';
+import request from 'supertest';
 
 import {
   setHeaders,
@@ -37,8 +37,8 @@ export function CreateRequestFactory(
           ...(params === false
             ? [false]
             : Array.isArray(params)
-            ? params
-            : [params]),
+              ? params
+              : [params]),
         ),
       );
 

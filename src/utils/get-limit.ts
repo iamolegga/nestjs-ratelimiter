@@ -1,4 +1,4 @@
-import * as Limiter from 'ratelimiter';
+import Limiter from 'ratelimiter';
 
 export async function getLimit(
   params: Limiter.LimiterOption,
