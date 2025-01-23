@@ -1,19 +1,19 @@
 queue_rules:
   - name: dependabot-nest-ratelimiter
-    conditions:
+    queue_conditions:
       - author~=^dependabot(|-preview)\[bot\]$
       - -check-failure~=build-lint-test
       - check-success~=build-lint-test
       - check-success=security/snyk (iamolegga)
+    merge_conditions:
+      - author~=^dependabot(|-preview)\[bot\]$
+      - -check-failure~=build-lint-test
+      - check-success~=build-lint-test
+      - check-success=security/snyk (iamolegga)
+    merge_method: rebase
 
 pull_request_rules:
-- name: merge pull requests from dependabot if CI passes
-  conditions:
-    - author~=^dependabot(|-preview)\[bot\]$
-    - -check-failure~=build-lint-test
-    - check-success~=build-lint-test
-    - check-success=security/snyk (iamolegga)
-  actions:
-    queue:
-      name: dependabot-nest-ratelimiter
-      method: rebase
+  - name: merge pull requests from dependabot if CI passes
+    conditions: []
+    actions:
+      queue:
