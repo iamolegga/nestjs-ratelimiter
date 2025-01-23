@@ -9,8 +9,7 @@ export const DECORATOR_PARAMS_TOKEN = Symbol.for(
 );
 export type RateLimiterParams = Pick<LimiterOption, 'max' | 'duration'> & {
   createErrorBody?: CreateErrorBodyFn;
-  // eslint-disable-next-line @typescript-eslint/ban-types
-} & ({ getId: GetIdFn } | { id: string } | {});
+} & ({ getId: GetIdFn } | { id: string } | object);
 
 export type GetIdFn = (context: ExecutionContext) => string | Promise<string>;
 
