@@ -65,7 +65,7 @@
     "@nestjs/platform-fastify": "^11.0.5",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.10.10",
+    "@types/node": "^24.0.0",
     "@types/ratelimiter": "^3.4.6",
     "@types/redis-mock": "^0.17.3",
     "@types/supertest": "^6.0.2",
