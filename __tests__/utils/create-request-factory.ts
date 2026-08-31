@@ -12,11 +12,11 @@ import { AbstractHttpAdapter, NestFactory } from '@nestjs/core';
 import request from 'supertest';
 
 import {
-  setHeaders,
+  RATE_LIMITER_ASSERTER_TOKEN,
   RateLimiter,
   RateLimiterAsserter,
   RateLimiterParams,
-  RATE_LIMITER_ASSERTER_TOKEN,
+  setHeaders,
 } from '../../src';
 
 import { fastifyExtraWait } from './fastify-extra-wait';
@@ -50,7 +50,6 @@ export function CreateRequestFactory(
       ) {}
 
       @applyDecorators(...handlerDecorator)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       async get(@Res({ passthrough: true }) response: any) {
         if (asService) {
           if (

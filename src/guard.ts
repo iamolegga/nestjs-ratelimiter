@@ -1,5 +1,4 @@
-import { ServerResponse } from 'http';
-
+import { ServerResponse } from 'node:http';
 import {
   CanActivate,
   ClassProvider,
@@ -87,7 +86,7 @@ export class RateLimiterGuard implements CanActivate {
   }
 
   private async getId(params: RateLimiterParams, context: ExecutionContext) {
-    let id: string | undefined = undefined;
+    let id: string | undefined;
     try {
       if ('id' in params) {
         id = params.id;

@@ -1,5 +1,11 @@
-import { ExecutionContext } from '@nestjs/common';
-import { FactoryProvider, ModuleMetadata } from '@nestjs/common/interfaces';
+// NestJS 12 maps `./*` to `./*.js` in its exports, so the
+// `@nestjs/common/interfaces` deep import no longer resolves. Both types are
+// re-exported from the package root.
+import {
+  ExecutionContext,
+  FactoryProvider,
+  ModuleMetadata,
+} from '@nestjs/common';
 import { LimiterInfo, LimiterOption } from 'ratelimiter';
 
 // Decorator params

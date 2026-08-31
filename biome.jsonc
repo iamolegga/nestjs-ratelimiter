@@ -1,0 +1,44 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.11/schema.json",
+  "formatter": { "indentStyle": "space" },
+  "javascript": {
+    "formatter": { "quoteStyle": "single" },
+    // NestJS builds its DI on constructor parameter decorators, which Biome
+    // refuses to parse without this.
+    "parser": { "unsafeParameterDecoratorsEnabled": true }
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        // Unsafe here: `emitDecoratorMetadata` derives `design:paramtypes`
+        // from the imported bindings, so rewriting a constructor parameter
+        // type as a type-only import erases the metadata and NestJS can no
+        // longer resolve the dependency.
+        "useImportType": "off"
+      }
+    }
+  },
+  "overrides": [
+    {
+      // A NestJS dynamic module is a class whose only members are the static
+      // `forRoot`/`forRootAsync` factories - Nest uses the class itself as the
+      // module token, so it cannot be replaced by plain functions.
+      "includes": ["src/module.ts"],
+      "linter": { "rules": { "complexity": { "noStaticOnlyClass": "off" } } }
+    },
+    {
+      // `keyof any` is the only way to spell "any property key" in the
+      // `RequireField` helper, and `TooManyRequestsException` mirrors the
+      // `string | object | any` message parameter of Nest's own HttpException
+      // subclasses.
+      "includes": ["src/utils/require-field.ts", "src/too-many-requests.exception.ts"],
+      "linter": { "rules": { "suspicious": { "noExplicitAny": "off" } } }
+    },
+    {
+      // Test helpers deliberately erase the platform-adapter generics and the
+      // passthrough response type, which is what these `any`s are for.
+      "includes": ["__tests__/**"],
+      "linter": { "rules": { "suspicious": { "noExplicitAny": "off" } } }
+    }
+  ]
+}
