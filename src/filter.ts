@@ -1,10 +1,9 @@
-import { ServerResponse } from 'http';
-
+import { ServerResponse } from 'node:http';
 import {
-  ExceptionFilter,
-  Catch,
   ArgumentsHost,
+  Catch,
   ClassProvider,
+  ExceptionFilter,
 } from '@nestjs/common';
 import { APP_FILTER, BaseExceptionFilter } from '@nestjs/core';
 

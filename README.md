@@ -8,22 +8,33 @@
     <img alt="npm" src="https://img.shields.io/npm/dm/nest-ratelimiter" />
   </a>
   <a href="https://github.com/iamolegga/nestjs-ratelimiter/actions">
-    <img alt="GitHub branch checks state" src="https://badgen.net/github/checks/iamolegga/nestjs-ratelimiter" />
+    <img alt="GitHub branch checks state" src="https://badgen.net/github/checks/iamolegga/nestjs-ratelimiter/master">
   </a>
-  <a href="https://codeclimate.com/github/iamolegga/nestjs-ratelimiter/test_coverage">
-    <img src="https://api.codeclimate.com/v1/badges/abcce849fa20ece7a413/test_coverage" />
+  <a href="https://qlty.sh/gh/iamolegga/projects/nestjs-ratelimiter">
+    <img src="https://qlty.sh/gh/iamolegga/projects/nestjs-ratelimiter/coverage.svg" alt="Code Coverage" />
   </a>
   <a href="https://snyk.io/test/github/iamolegga/nestjs-ratelimiter">
     <img alt="Known Vulnerabilities" src="https://snyk.io/test/github/iamolegga/nestjs-ratelimiter/badge.svg" />
   </a>
   <a href="https://libraries.io/npm/nest-ratelimiter">
-    <img alt="Libraries.io" src="https://img.shields.io/librariesio/release/npm/nest-ratelimiter" />
+    <img alt="Libraries.io" src="https://img.shields.io/librariesio/release/npm/nest-ratelimiter">
   </a>
-  <img alt="Dependabot" src="https://badgen.net/github/dependabot/iamolegga/nestjs-ratelimiter" />
+  <img alt="Dependabot" src="https://badgen.net/github/dependabot/iamolegga/nestjs-ratelimiter">
   <img alt="Supported platforms: Express & Fastify" src="https://img.shields.io/badge/platforms-Express%20%26%20Fastify-green" />
 </p>
 
 <p align="center"><b>The most flexible NestJS rate limiter based on Redis (rate limit against not only req path but req body to block distributed brute force attacks).</b></p>
+
+---
+
+<p align="center"><b>This is the documentation for v0.5. Compatibility with earlier versions:</b></p>
+
+| nest-ratelimiter | NestJS       | Node.js |
+| ---------------- | ------------ | ------- |
+| v0.5             | 11, 12       | >=22.12 |
+| [v0.4](https://github.com/iamolegga/nestjs-ratelimiter/tree/0.4.0#readme) | 8, 9, 10, 11 | >=18    |
+
+---
 
 ## Install
 
@@ -255,6 +266,12 @@ class TestModule {}
 This `nest-ratelimiter` is using TJ's [ratelimiter](https://www.npmjs.com/package/ratelimiter) package underhood, so it allows the creation of a flexible strategy for limiting not only per request path but per **headers** or **body** values or even asynchronously computed values on a services layer. **It stores data only in `redis`**. If you need another store you can look at [nestjs-rate-limiter](https://www.npmjs.com/package/nestjs-rate-limiter), but it allows the use of strategies based on a request path only. Also, there is an example in [official docs](https://docs.nestjs.com/techniques/security#rate-limiting) with setting up [express-rate-limit](https://www.npmjs.com/package/express-rate-limit) middleware.
 
 ## Migration
+
+### 0.5.0
+
+- dropped support of nestjs < 11.0.0
+- dropped support of node < 22.12.0
+- the package is now published from `dist/` with an `exports` map, so deep imports such as `nest-ratelimiter/utils/set-headers.fn` no longer resolve — import from the package root
 
 ### 0.3.0
 

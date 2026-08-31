@@ -135,8 +135,8 @@ for (const platform of platforms) {
         const response = await createRequest(
           RateLimiterModule.forRoot({ db }),
           [
-            { id: '1:' + id, max: 1, duration: 5000 },
-            { id: '2:' + id, max: 2, duration: 5000 },
+            { id: `1:${id}`, max: 1, duration: 5000 },
+            { id: `2:${id}`, max: 2, duration: 5000 },
           ],
         );
 
@@ -152,8 +152,8 @@ for (const platform of platforms) {
         const response = await createRequest(
           RateLimiterModule.forRoot({ db }),
           [
-            { id: '2:' + id, max: 2, duration: 5000 },
-            { id: '1:' + id, max: 1, duration: 5000 },
+            { id: `2:${id}`, max: 2, duration: 5000 },
+            { id: `1:${id}`, max: 1, duration: 5000 },
           ],
         );
 
